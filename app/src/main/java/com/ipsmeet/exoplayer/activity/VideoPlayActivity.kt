@@ -2,6 +2,8 @@ package com.ipsmeet.exoplayer.activity
 
 import android.os.Bundle
 import android.util.Log
+import android.view.Window
+import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -19,13 +21,12 @@ class VideoPlayActivity : AppCompatActivity() {
     private var position = 0
     private lateinit var title: String
     lateinit var path: String
-    private var isPlaying = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityVideoPlayBinding.inflate(layoutInflater)
+        setFullScreen()
         setContentView(binding.root)
-
         supportActionBar!!.hide()
 
         exoPlayer = ExoPlayer.Builder(this).build()
@@ -44,17 +45,16 @@ class VideoPlayActivity : AppCompatActivity() {
             setMediaItem(mediaItem)
             prepare()
             play()
+            playWhenReady = true
         }
 
-        isPlaying = true
-
         findViewById<ImageView>(R.id.imgV_playPause).setOnClickListener {
-            if (isPlaying) {
-                isPlaying = false
+            if (exoPlayer.playWhenReady) {
+                exoPlayer.playWhenReady = false
                 exoPlayer.pause()
                 Glide.with(this).load(R.drawable.round_play_arrow_24).into(findViewById(R.id.imgV_playPause))
             } else {
-                isPlaying = true
+                exoPlayer.playWhenReady = true
                 exoPlayer.play()
                 Glide.with(this).load(R.drawable.round_pause_24).into(findViewById(R.id.imgV_playPause))
             }
@@ -63,15 +63,34 @@ class VideoPlayActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        isPlaying = false
-        exoPlayer.pause()
+        exoPlayer.apply {
+            playWhenReady = false
+            pause()
+            playbackState
+        }
         Glide.with(this).load(R.drawable.round_play_arrow_24).into(findViewById(R.id.imgV_playPause))
     }
 
     override fun onStop() {
         super.onStop()
-        isPlaying = false
-        exoPlayer.stop()
+        exoPlayer.apply {
+            playWhenReady = false
+            stop()
+            playbackState
+        }
         Glide.with(this).load(R.drawable.round_play_arrow_24).into(findViewById(R.id.imgV_playPause))
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        exoPlayer.apply {
+            playWhenReady = true
+            playbackState
+        }
+    }
+
+    private fun setFullScreen() {
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
+        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
     }
 }
