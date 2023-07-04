@@ -14,7 +14,7 @@ import com.ipsmeet.exoplayer.dataclass.MediaFileDataClass
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-class VideoFileAdapter(private val context: Context, private val videoList: List<MediaFileDataClass>)
+class VideoFileAdapter(private val context: Context, private val videoList: ArrayList<MediaFileDataClass>)
     : RecyclerView.Adapter<VideoFileAdapter.FileViewHolder>() {
 
     class FileViewHolder(val itemBinding: RecyclerVideoFileBinding): RecyclerView.ViewHolder(itemBinding.root)
@@ -35,12 +35,16 @@ class VideoFileAdapter(private val context: Context, private val videoList: List
 
                 itemBinding.fileName.text = this.displayName
                 itemBinding.txtVideoDuration.text = displayTime(this.duration!!.toDouble())
+
+                val bundle = Bundle()
+                bundle.putParcelableArrayList("videoPlayList", videoList)
                 itemView.setOnClickListener {
+
                     context.startActivity(
                         Intent(context, VideoPlayActivity::class.java)
                             .putExtra("position", position)
                             .putExtra("displayName", this.displayName)
-                            .putExtra("path", this.path)
+                            .putExtra("bundle",bundle)
                     )
                 }
             }

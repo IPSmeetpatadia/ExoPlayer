@@ -150,7 +150,7 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
-            android:id="@+id/txt_currentTime"
+            android:id="@+id/exo_position"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
@@ -160,7 +160,7 @@
             tools:text="00:00:00" />
 
         <TextView
-            android:id="@+id/txt_totalDuration"
+            android:id="@+id/exo_duration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
@@ -170,11 +170,13 @@
             tools:text="11:11:11" />
 
         <androidx.media3.ui.DefaultTimeBar
+            android:id="@+id/exo_progress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="@id/txt_totalDuration"
-            app:layout_constraintStart_toStartOf="@id/txt_currentTime"
-            app:layout_constraintTop_toBottomOf="@id/txt_totalDuration"
+            app:scrubber_color="@color/purple_200"
+            app:layout_constraintEnd_toEndOf="@id/exo_duration"
+            app:layout_constraintStart_toStartOf="@id/exo_position"
+            app:layout_constraintTop_toBottomOf="@id/exo_duration"
             app:played_color="@color/design_default_color_primary"
             app:unplayed_color="@color/white" />
 
