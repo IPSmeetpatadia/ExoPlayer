@@ -1,32 +1,25 @@
 package com.ipsmeet.exoplayer.activity
 
-import android.content.pm.ActivityInfo
-import android.media.MediaFormat
 import android.os.Bundle
-import android.os.Handler
 import android.view.Window
-import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.media3.common.C
-import androidx.media3.common.Format
-import androidx.media3.common.MediaItem
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultDataSourceFactory
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.*
-import androidx.media3.exoplayer.video.VideoFrameMetadataListener
 import com.bumptech.glide.Glide
-import com.google.common.net.HttpHeaders.USER_AGENT
 import com.ipsmeet.exoplayer.R
 import com.ipsmeet.exoplayer.databinding.ActivityVideoPlayBinding
 import com.ipsmeet.exoplayer.dataclass.MediaFileDataClass
+import com.ipsmeet.exoplayer.viewmodel.VideoPlayViewModel
 
 @UnstableApi
 class VideoPlayActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityVideoPlayBinding
+
+    private lateinit var viewModel: VideoPlayViewModel
 
     private lateinit var exoPlayer: ExoPlayer
     private var position = 0
@@ -36,8 +29,11 @@ class VideoPlayActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityVideoPlayBinding.inflate(layoutInflater)
-        setFullScreen()
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
         setContentView(binding.root)
+
+        viewModel = ViewModelProvider(this)[VideoPlayViewModel::class.java]
+        viewModel.setFullScreen(this)
 
         position = intent.getIntExtra("position", 1)
         title = intent.getStringExtra("displayName").toString()
@@ -46,67 +42,16 @@ class VideoPlayActivity : AppCompatActivity() {
 
         // setting title of video in `custom_control_layout.xml
         findViewById<TextView>(R.id.txt_videoTitle).text = title
-
-        playVideo()
+        initializeVideoPlayer()
     }
 
-    private fun playVideo() {
-        val mediaItem = MediaItem.fromUri(videoPlayList[position].path!!)
-        val dataSourceFactory = DefaultDataSourceFactory(this, USER_AGENT)
-        val concatenatingMediaSource = ConcatenatingMediaSource()
-
-        var currentOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-
-        // listen for video size changes
-        val videoListener = object : VideoFrameMetadataListener {
-            override fun onVideoFrameAboutToBeRendered(presentationTimeUs: Long, releaseTimeNs: Long, format: Format, mediaFormat: MediaFormat?) {
-                val newOrientation = if (format.width > format.height) {
-                    ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                } else {
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                }
-
-                // update the activity's orientation if it has changed
-                if (newOrientation != currentOrientation) {
-                    currentOrientation = newOrientation
-                    requestedOrientation = currentOrientation
-                }
-            }
-        }
-
-        for (i in 0..videoPlayList.size) {
-            val mediaSourceFactory = ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(mediaItem)
-            concatenatingMediaSource.addMediaSource(mediaSourceFactory)
-        }
-
-        concatenatingMediaSource.addEventListener(Handler(), object : MediaSourceEventListener {
-            override fun onLoadCompleted(windowIndex: Int, mediaPeriodId: MediaSource.MediaPeriodId?, loadEventInfo: LoadEventInfo, mediaLoadData: MediaLoadData) {
-                super.onLoadCompleted(windowIndex, mediaPeriodId, loadEventInfo, mediaLoadData)
-                if (mediaLoadData.trackFormat != null) {
-                    requestedOrientation = if (mediaLoadData.trackFormat!!.width > mediaLoadData.trackFormat!!.height) {
-                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                    } else {
-                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                    }
-                }
-            }
-        })
-
+    private fun initializeVideoPlayer() {
         exoPlayer = ExoPlayer.Builder(this).build()
         binding.playerView.apply {
             player = exoPlayer
             keepScreenOn = true
         }
-
-        exoPlayer.apply {
-            prepare(concatenatingMediaSource)
-            play()
-            playWhenReady = true
-            seekTo(position, C.TIME_UNSET)
-            setVideoFrameMetadataListener(videoListener)
-        }
-
+        viewModel.playVideo(this, videoPlayList, position, exoPlayer)
         videoController()
     }
 
@@ -132,7 +77,7 @@ class VideoPlayActivity : AppCompatActivity() {
                 exoPlayer.stop()
                 position++
                 findViewById<TextView>(R.id.txt_videoTitle).text = videoPlayList[position].displayName
-                playVideo()
+                initializeVideoPlayer()
             }
             catch (e: Exception) {
                 finish()
@@ -145,7 +90,7 @@ class VideoPlayActivity : AppCompatActivity() {
                 exoPlayer.stop()
                 position--
                 findViewById<TextView>(R.id.txt_videoTitle).text = videoPlayList[position].displayName
-                playVideo()
+                initializeVideoPlayer()
             }
             catch (e: Exception) {
                 finish()
@@ -180,11 +125,4 @@ class VideoPlayActivity : AppCompatActivity() {
         }
     }
 
-    private fun setFullScreen() {
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
-        )
-    }
 }
