@@ -4,11 +4,15 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.util.UnstableApi
 import com.ipsmeet.exoplayer.databinding.ActivityMainBinding
 import com.ipsmeet.exoplayer.viewmodel.PermissionViewModel
 
-class MainActivity : AppCompatActivity() {
+@UnstableApi class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var permissionModel: PermissionViewModel
@@ -22,7 +26,11 @@ class MainActivity : AppCompatActivity() {
         permissionModel.requestPermission(this)
 
         binding.layoutMusicPlayer.setOnClickListener {
-            Toast.makeText(this, "Get premium for access MUSIC PLAYER", Toast.LENGTH_SHORT).show()
+            startActivity(
+                Intent(
+                    this, MusicListActivity::class.java
+                )
+            )
         }
 
         binding.layoutVideoPlayer.setOnClickListener {
