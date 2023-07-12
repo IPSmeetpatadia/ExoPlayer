@@ -1,6 +1,7 @@
 package com.ipsmeet.exoplayer.adapter
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.view.LayoutInflater
@@ -13,6 +14,7 @@ import com.bumptech.glide.Glide
 import com.ipsmeet.exoplayer.R
 import com.ipsmeet.exoplayer.databinding.RecyclerMusicFileBinding
 import com.ipsmeet.exoplayer.dataclass.MusicDataClass
+import com.ipsmeet.exoplayer.service.NotificationService
 
 @UnstableApi class MusicListAdapter(val context: Context, private val musicList: List<MusicDataClass>, private val exoPlayer: ExoPlayer, private val listener: OnClick)
     :RecyclerView.Adapter<MusicListAdapter.MusicViewHolder>(){
@@ -38,6 +40,11 @@ import com.ipsmeet.exoplayer.dataclass.MusicDataClass
                 itemBinding.fileName.text = this.displayName
 
                 itemView.setOnClickListener {
+                    //  Start service
+                    context.startService(
+                        Intent(context.applicationContext, NotificationService::class.java)
+                    )
+
                     if (exoPlayer.isPlaying) {
                         exoPlayer.pause()
                         exoPlayer.seekTo(position, 0)

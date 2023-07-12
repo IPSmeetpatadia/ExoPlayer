@@ -1,8 +1,14 @@
 package com.ipsmeet.exoplayer.activity
 
 import android.Manifest
+import android.app.PendingIntent
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +25,7 @@ import com.ipsmeet.exoplayer.R
 import com.ipsmeet.exoplayer.adapter.MusicListAdapter
 import com.ipsmeet.exoplayer.databinding.ActivityMusicListBinding
 import com.ipsmeet.exoplayer.dataclass.MusicDataClass
+import com.ipsmeet.exoplayer.service.NotificationService
 import com.ipsmeet.exoplayer.viewmodel.MusicListViewModel
 import com.ipsmeet.exoplayer.viewmodel.PermissionViewModel
 
@@ -32,6 +39,8 @@ import com.ipsmeet.exoplayer.viewmodel.PermissionViewModel
     private var musicList = arrayListOf<MusicDataClass>()
     private lateinit var exoPlayer: ExoPlayer
     var position = 0
+
+    var isBound = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +78,7 @@ import com.ipsmeet.exoplayer.viewmodel.PermissionViewModel
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             if (it) {
                 showMusics()
+                // doServiceBinding()
             } else {
                 permissionViewModel.requestPermission(this)
             }
@@ -93,7 +103,7 @@ import com.ipsmeet.exoplayer.viewmodel.PermissionViewModel
         binding.songInRun.visibility = View.VISIBLE
         viewModel.startMusic(this@MusicListActivity, this, binding, position, exoPlayer)
 
-        musicController()
+         musicController()
     }
 
     //  Home music controller
@@ -156,6 +166,26 @@ import com.ipsmeet.exoplayer.viewmodel.PermissionViewModel
                 }
             }
         })
+    }
+
+    private fun doServiceBinding() {
+        val intent = Intent(this, NotificationService::class.java)
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        isBound = false
+    }
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder: NotificationService.ServiceBinder = service as NotificationService.ServiceBinder
+            exoPlayer = binder.getPlayerService().exoPlayer
+            isBound = true
+
+            musicController()
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+
+        }
     }
 
     @Deprecated("Deprecated in Java")

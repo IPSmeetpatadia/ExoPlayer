@@ -22,6 +22,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ExoPlayer"
         tools:targetApi="31">
+
+        <service
+            android:name=".service.NotificationService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.FOREGROUND_SERVICE" />
+
         <activity
             android:name=".activity.MusicListActivity"
             android:exported="false" />
