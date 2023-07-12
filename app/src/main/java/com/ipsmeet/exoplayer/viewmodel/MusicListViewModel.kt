@@ -126,6 +126,7 @@ import java.util.concurrent.TimeUnit
         Glide.with(context).load(albumArt).placeholder(R.drawable.round_music_note_24).into(binding.layoutMusicPlay.imgVAlbumArt)
         binding.txtCurrentSong.text = musicFiles[position].displayName
         binding.layoutMusicPlay.txtMusicName.text = musicFiles[position].displayName
+        Glide.with(context).load(R.drawable.round_pause_24).into(binding.layoutMusicPlay.playPause)
         //  music duration in player-view
         binding.layoutMusicPlay.txtMusicDuration.text = displayTime(musicFiles[position].duration!!.toDouble())
     }

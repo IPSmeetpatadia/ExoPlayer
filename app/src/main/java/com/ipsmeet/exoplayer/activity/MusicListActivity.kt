@@ -1,7 +1,6 @@
 package com.ipsmeet.exoplayer.activity
 
 import android.Manifest
-import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -103,7 +102,9 @@ import com.ipsmeet.exoplayer.viewmodel.PermissionViewModel
         binding.songInRun.visibility = View.VISIBLE
         viewModel.startMusic(this@MusicListActivity, this, binding, position, exoPlayer)
 
-         musicController()
+        Glide.with(this).load(R.drawable.round_pause_24).into(binding.imgVPlayPause)
+        Glide.with(this).load(R.drawable.round_pause_24).into(binding.layoutMusicPlay.playPause)
+        musicController()
     }
 
     //  Home music controller
