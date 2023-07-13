@@ -71,13 +71,14 @@ import com.ipsmeet.exoplayer.viewmodel.PermissionViewModel
         binding.songInRun.setOnClickListener {
             viewModel.viewMusicPlayLayout(this, binding, binding.layoutMusicPlay, musicList, position)
         }
+
+        doServiceBinding()
     }
 
     private val storagePermissionLauncher: ActivityResultLauncher<String> =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             if (it) {
                 showMusics()
-                // doServiceBinding()
             } else {
                 permissionViewModel.requestPermission(this)
             }

@@ -9,4 +9,6 @@
     <string name="cd_btn_repeat">Btn repeat</string>
     <string name="cd_playlist">Playlist</string>
     <string name="cd_btn_previous">Btn Previous</string>
+
+    <string name="notification_channel_name"> Music Player Notification Channel</string>
 </resources>

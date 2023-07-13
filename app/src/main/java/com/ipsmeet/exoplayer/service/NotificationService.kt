@@ -7,6 +7,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Binder
 import android.os.IBinder
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.util.Log
 import android.widget.ImageView
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH
@@ -26,6 +29,7 @@ import com.ipsmeet.exoplayer.activity.MusicListActivity
     var serviceBinder: IBinder = ServiceBinder()
     lateinit var exoPlayer: ExoPlayer
     private lateinit var playerNotificationManager: PlayerNotificationManager
+    private lateinit var mediaSession: MediaSessionCompat
 
     private val notificationId = 111
     private val channelId = "music_player_channel"
@@ -50,10 +54,14 @@ import com.ipsmeet.exoplayer.activity.MusicListActivity
 
         exoPlayer.setAudioAttributes(audioAttributes, true)
 
+        val title = exoPlayer.currentMediaItem?.mediaMetadata?.displayTitle
+        Log.d("title", title.toString())
+
         //  Initialize notification
         playerNotificationManager = PlayerNotificationManager.Builder(this, notificationId, channelId)
             .setNotificationListener(notificationListener)
             .setMediaDescriptionAdapter(descriptionAdapter)
+            .setChannelNameResourceId(R.string.notification_channel_name)
             .setChannelImportance(IMPORTANCE_HIGH)
             .setSmallIconResourceId(R.drawable.round_music_note_24)
             .setChannelDescriptionResourceId(R.string.app_name)
@@ -63,12 +71,26 @@ import com.ipsmeet.exoplayer.activity.MusicListActivity
             .setPauseActionIconResourceId(R.drawable.round_pause_24)
             .build()
 
+        //  Set-up Media session
+        mediaSession = MediaSessionCompat(applicationContext, "Music Player")
+        mediaSession.apply {
+            isActive = true
+            setMetadata(MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "title")
+//                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, "description")
+                .build())
+        }
+
+        /*val mediaSessionConnector = MediaSessionConnector(mediaSession)
+        mediaSessionConnector.setPlayer(exoPlayer)*/
+
         //  Set player to notification manager
         playerNotificationManager.apply {
             setPlayer(exoPlayer)
             setPriority(NotificationCompat.PRIORITY_MAX)
             setUseRewindAction(false)
             setUseFastForwardAction(false)
+            setMediaSessionToken(mediaSession.sessionToken)
         }
     }
 
@@ -91,7 +113,7 @@ import com.ipsmeet.exoplayer.activity.MusicListActivity
     //  Notification description adapter
     private val descriptionAdapter = object : PlayerNotificationManager.MediaDescriptionAdapter {
         override fun getCurrentContentTitle(player: Player): CharSequence {
-            return exoPlayer.currentMediaItem?.mediaMetadata?.displayTitle!!
+            return "player.currentMediaItem?.mediaMetadata?.displayTitle!!"
         }
 
         override fun createCurrentContentIntent(player: Player): PendingIntent? {
@@ -117,6 +139,7 @@ import com.ipsmeet.exoplayer.activity.MusicListActivity
     }
 
     override fun onDestroy() {
+        mediaSession.isActive = false
         if (exoPlayer.isPlaying) {
             exoPlayer.stop()
         }
