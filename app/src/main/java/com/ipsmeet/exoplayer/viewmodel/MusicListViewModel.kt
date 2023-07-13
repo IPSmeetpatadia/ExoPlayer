@@ -12,6 +12,7 @@ import android.widget.SeekBar
 import androidx.lifecycle.ViewModel
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSourceFactory
@@ -65,9 +66,26 @@ import java.util.concurrent.TimeUnit
         exo = exoPlayer
         pos = position
 
-        val mediaItem = MediaItem.fromUri(musicFiles[position].path!!)
+        val mediaMetaData = MediaMetadata.Builder()
+            .setAlbumTitle(musicFiles[position].displayName)
+            .build()
+
+        val mediaItem = MediaItem.Builder()
+            .setMediaMetadata(mediaMetaData)
+            .setUri(musicFiles[position].path!!)
+
+        exo.setMediaItem(mediaItem)
         val dataSourceFactory = DefaultDataSourceFactory(activity, HttpHeaders.USER_AGENT)
         val concatenatingMediaSource = ConcatenatingMediaSource()
+
+        /*val mediaMetaData = MediaMetadata.Builder()
+            .setAlbumTitle(MusicPlayerData.audioTitle)
+            .build()
+        val mediaItem =
+            MediaItem.Builder().setMediaMetadata(mediaMetaData)
+                .setUri(MusicPlayerData.audioUri)
+                .build()
+        player?.setMediaItem(mediaItem)*/
 
         for (i in 0..musicFiles.size) {
             val mediaSourceFactory = ProgressiveMediaSource.Factory(dataSourceFactory)
@@ -75,7 +93,7 @@ import java.util.concurrent.TimeUnit
             concatenatingMediaSource.addMediaSource(mediaSourceFactory)
         }
 
-        concatenatingMediaSource.addEventListener(Handler(), object : MediaSourceEventListener {
+        /*concatenatingMediaSource.addEventListener(Handler(), object : MediaSourceEventListener {
             override fun onLoadCompleted(windowIndex: Int, mediaPeriodId: MediaSource.MediaPeriodId?, loadEventInfo: LoadEventInfo, mediaLoadData: MediaLoadData) {
                 super.onLoadCompleted(windowIndex, mediaPeriodId, loadEventInfo, mediaLoadData)
                 if (mediaLoadData.trackFormat != null) {
@@ -86,10 +104,10 @@ import java.util.concurrent.TimeUnit
                     }
                 }
             }
-        })
+        })*/
 
         exo.apply {
-            prepare(concatenatingMediaSource)
+            prepare()
             play()
             playWhenReady = true
             seekTo(position, C.TIME_UNSET)
@@ -110,6 +128,7 @@ import java.util.concurrent.TimeUnit
                         binding.layoutMusicPlay.musicSeekBar.progress = 0
                         startMusic(activity.applicationContext, activity, binding, pos, exo)
 
+                        exo.setMediaItem(mediaItem)
                         val mediaSourceFactory = ProgressiveMediaSource.Factory(dataSourceFactory)
                             .createMediaSource(mediaItem)
                         concatenatingMediaSource.addMediaSource(mediaSourceFactory)
@@ -129,6 +148,16 @@ import java.util.concurrent.TimeUnit
         Glide.with(context).load(R.drawable.round_pause_24).into(binding.layoutMusicPlay.playPause)
         //  music duration in player-view
         binding.layoutMusicPlay.txtMusicDuration.text = displayTime(musicFiles[position].duration!!.toDouble())
+    }
+
+    fun ExoPlayer.setMediaItem(builder: MediaItem.Builder) {
+        val mediaItem = builder.build()
+        setMediaItem(mediaItem)
+    }
+
+    fun ProgressiveMediaSource.Factory.createMediaSource(builder: MediaItem.Builder): ProgressiveMediaSource {
+        val mediaItem = builder.build()
+        return createMediaSource(mediaItem)
     }
 
     //  MUSIC-PLAY VIEW

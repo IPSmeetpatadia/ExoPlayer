@@ -1,6 +1,7 @@
 package com.ipsmeet.exoplayer.activity
 
 import android.Manifest
+import android.app.ProgressDialog.show
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -25,6 +26,7 @@ import com.ipsmeet.exoplayer.adapter.MusicListAdapter
 import com.ipsmeet.exoplayer.databinding.ActivityMusicListBinding
 import com.ipsmeet.exoplayer.dataclass.MusicDataClass
 import com.ipsmeet.exoplayer.service.NotificationService
+import com.ipsmeet.exoplayer.service.PlayerService
 import com.ipsmeet.exoplayer.viewmodel.MusicListViewModel
 import com.ipsmeet.exoplayer.viewmodel.PermissionViewModel
 
@@ -171,15 +173,15 @@ import com.ipsmeet.exoplayer.viewmodel.PermissionViewModel
     }
 
     private fun doServiceBinding() {
-        val intent = Intent(this, NotificationService::class.java)
+        val intent = Intent(this, PlayerService::class.java)
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         isBound = false
     }
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val binder: NotificationService.ServiceBinder = service as NotificationService.ServiceBinder
-            exoPlayer = binder.getPlayerService().exoPlayer
+            val binder: PlayerService.ServiceBinder = service as PlayerService.ServiceBinder
+            exoPlayer = binder.getPlayerService().player as ExoPlayer
             isBound = true
 
             musicController()
@@ -188,6 +190,23 @@ import com.ipsmeet.exoplayer.viewmodel.PermissionViewModel
         override fun onServiceDisconnected(name: ComponentName?) {
 
         }
+    }
+
+    private fun setPlayerControls() {
+//        binding.playerView.player = player
+//        musicPlayerBinding.controls.player = player
+        exoPlayer?.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                super.onPlaybackStateChanged(playbackState)
+                when (playbackState) {
+//                    Player.STATE_BUFFERING -> show(musicPlayerBinding.progressCircular)
+                    Player.STATE_READY -> {
+                        exoPlayer?.playWhenReady = true
+//                        hide(musicPlayerBinding.progressCircular)
+                    }
+                }
+            }
+        })
     }
 
     @Deprecated("Deprecated in Java")

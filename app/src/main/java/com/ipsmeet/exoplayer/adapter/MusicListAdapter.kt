@@ -15,6 +15,7 @@ import com.ipsmeet.exoplayer.R
 import com.ipsmeet.exoplayer.databinding.RecyclerMusicFileBinding
 import com.ipsmeet.exoplayer.dataclass.MusicDataClass
 import com.ipsmeet.exoplayer.service.NotificationService
+import com.ipsmeet.exoplayer.service.PlayerService
 
 @UnstableApi class MusicListAdapter(val context: Context, private val musicList: List<MusicDataClass>, private val exoPlayer: ExoPlayer, private val listener: OnClick)
     :RecyclerView.Adapter<MusicListAdapter.MusicViewHolder>(){
@@ -42,7 +43,7 @@ import com.ipsmeet.exoplayer.service.NotificationService
                 itemView.setOnClickListener {
                     //  Start service
                     context.startService(
-                        Intent(context.applicationContext, NotificationService::class.java)
+                        Intent(context.applicationContext, PlayerService::class.java)
                     )
 
                     if (exoPlayer.isPlaying) {
